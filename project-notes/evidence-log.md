@@ -59,3 +59,49 @@ and the initial IE3142 project workspace structure.
 
 Status:
 Captured
+
+### E05 – WebGoat v2026.4 Source Checkout
+
+Evidence File:
+evidence/stage-02/E05_WebGoat_v2026.4_Source_Checkout.png
+
+Description:
+Terminal evidence confirming that the OWASP WebGoat v2026.4
+source code was checked out successfully and that the source
+working tree is clean.
+
+Purpose:
+Demonstrates the exact WebGoat version selected for the
+assignment and confirms that the source checkout is intact.
+
+Selected Version:
+v2026.4
+
+Status:
+Captured
+
+### E06 – WebGoat v2026.4 Build Verification
+
+Evidence File:
+evidence/stage-02/E06_WebGoat_v2026.4_Build_Verification.png
+
+Description:
+Terminal evidence confirming that the WebGoat v2026.4 source
+was successfully built with Maven and that the expected
+webgoat-2026.4-SNAPSHOT.jar artifact was generated.
+
+Purpose:
+Demonstrates successful compilation and packaging of the exact
+WebGoat version selected for the assignment before containerisation.
+
+Selected Version:
+v2026.4
+
+Build Artifact:
+webgoat-2026.4-SNAPSHOT.jar
+
+Source Status:
+Clean
+
+Status:
+Captured
