@@ -36,13 +36,21 @@ public class SqlInjectionLesson10Test extends LessonTest {
   }
 
   @Test
-  public void tableMissingIsSuccess() throws Exception {
+  public void sqlInjectionPayloadDoesNotDeleteTable() throws Exception {
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack10")
                 .param("action_string", "%'; DROP TABLE access_log;--"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("lessonCompleted", is(true)))
-        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.10.success"))));
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.10.entries"))));
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack10")
+                .param("action_string", ""))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.10.entries"))));
   }
 }
