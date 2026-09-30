@@ -9,6 +9,7 @@ import static org.owasp.webgoat.container.assignments.AttackResultBuilder.succes
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.SQLException;
 import org.owasp.webgoat.container.LessonDataSource;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
