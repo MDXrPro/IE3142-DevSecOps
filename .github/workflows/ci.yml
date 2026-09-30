@@ -1,0 +1,55 @@
+name: WebGoat CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  sast:
+    name: SAST - Semgrep
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Semgrep
+        run: |
+          python -m pip install --upgrade pip
+          pip install semgrep
+
+      - name: Run Semgrep SAST
+        run: |
+          semgrep --config p/java --error application/WebGoat/src/main/java
+
+  build-and-test:
+    name: Build and Test WebGoat
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Make Maven wrapper executable
+        working-directory: application/WebGoat
+        run: chmod +x mvnw
+
+      - name: Build and test
+        working-directory: application/WebGoat
+        run: ./mvnw -B clean verify
