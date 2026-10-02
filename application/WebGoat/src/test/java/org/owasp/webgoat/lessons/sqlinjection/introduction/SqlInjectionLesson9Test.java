@@ -15,62 +15,37 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 public class SqlInjectionLesson9Test extends LessonTest {
 
-  private final String completedError = "JSON path \"lessonCompleted\"";
-
   @Test
-  public void malformedQueryReturnsError() throws Exception {
-    try {
-      mockMvc
-          .perform(
-              MockMvcRequestBuilders.post("/SqlInjection/attack9")
-                  .param("name", "Smith")
-                  .param("auth_tan", "3SL99A' OR '1' = '1'"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("lessonCompleted", is(false)))
-          .andExpect(jsonPath("$.output", containsString("feedback-negative")));
-    } catch (AssertionError e) {
-      if (!e.getMessage().contains(completedError)) throw e;
-
-      mockMvc
-          .perform(
-              MockMvcRequestBuilders.post("/SqlInjection/attack9")
-                  .param("name", "Smith")
-                  .param("auth_tan", "3SL99A' OR '1' = '1'"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("lessonCompleted", is(true)))
-          .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.success"))))
-          .andExpect(jsonPath("$.output", containsString("feedback-negative")));
-    }
-  }
-
-  @Test
-  public void SmithIsNotMostEarning() throws Exception {
+  public void sqlInjectionPayloadCannotModifySalary() throws Exception {
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
                 .param("name", "Smith")
                 .param(
                     "auth_tan",
-                    "3SL99A'; UPDATE employees SET salary = 9999 WHERE last_name = 'Smith"))
+                    "3SL99A'; UPDATE employees SET salary = '300000' WHERE last_name = 'Smith"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("lessonCompleted", is(false)))
-        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.one"))));
+        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.one"))))
+        .andExpect(jsonPath("$.output", containsString("64350")));
   }
 
   @Test
-  public void OnlySmithSalaryMustBeUpdated() throws Exception {
+  public void sqlInjectionPayloadCannotUpdateOtherEmployees() throws Exception {
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
                 .param("name", "Smith")
-                .param("auth_tan", "3SL99A'; UPDATE employees SET salary = 9999 -- "))
+                .param(
+                    "auth_tan",
+                    "3SL99A'; UPDATE employees SET salary = 999999 -- "))
         .andExpect(status().isOk())
         .andExpect(jsonPath("lessonCompleted", is(false)))
         .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.one"))));
   }
 
   @Test
-  public void OnlySmithMustMostEarning() throws Exception {
+  public void sqlInjectionPayloadCannotMakeAnotherEmployeeHighestPaid() throws Exception {
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
@@ -82,17 +57,13 @@ public class SqlInjectionLesson9Test extends LessonTest {
   }
 
   @Test
-  public void SmithIsMostEarningCompletesAssignment() throws Exception {
+  public void normalCredentialsDoNotCompleteAssignment() throws Exception {
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
                 .param("name", "Smith")
-                .param(
-                    "auth_tan",
-                    "3SL99A'; UPDATE employees SET salary = '300000' WHERE last_name = 'Smith"))
+                .param("auth_tan", "3SL99A"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("lessonCompleted", is(true)))
-        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.success"))))
-        .andExpect(jsonPath("$.output", containsString("300000")));
+        .andExpect(jsonPath("lessonCompleted", is(false)));
   }
 }

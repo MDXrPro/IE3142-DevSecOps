@@ -4,6 +4,9 @@
 **/.project
 **/.settings/
 
+# Backup files
+*.backup
+
 # IDE files
 .idea/
 *.iml

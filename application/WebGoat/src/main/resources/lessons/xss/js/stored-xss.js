@@ -1,6 +1,7 @@
 $(document).ready(function () {
     $("#postComment").on("click", function () {
         var commentInput = $("#commentInput").val();
+
         $.ajax({
             type: 'POST',
             url: 'CrossSiteScriptingStored/stored-xss',
@@ -12,8 +13,8 @@ $(document).ready(function () {
                 getChallenges();
                 $("#commentInput").val('');
             }
-        )
-    })
+        );
+    });
 
     var html = '<li class="comment">' +
         '<div class="pull-left">' +
@@ -21,10 +22,10 @@ $(document).ready(function () {
         '</div>' +
         '<div class="comment-body">' +
         '<div class="comment-heading">' +
-        '<h4 class="user">USER</h4>' +
-        '<h5 class="time">DATETIME</h5>' +
+        '<h4 class="user"></h4>' +
+        '<h5 class="time"></h5>' +
         '</div>' +
-        '<p>COMMENT</p>' +
+        '<p class="comment-text"></p>' +
         '</div>' +
         '</li>';
 
@@ -32,14 +33,17 @@ $(document).ready(function () {
 
     function getChallenges() {
         $("#list").empty();
+
         $.get('CrossSiteScriptingStored/stored-xss', function (result, status) {
             for (var i = 0; i < result.length; i++) {
-                var comment = html.replace('USER', result[i].user);
-                comment = comment.replace('DATETIME', result[i].dateTime);
-                comment = comment.replace('COMMENT', result[i].text);
+                var comment = $(html);
+
+                comment.find(".user").text(result[i].user);
+                comment.find(".time").text(result[i].dateTime);
+                comment.find(".comment-text").text(result[i].text);
+
                 $("#list").append(comment);
             }
-
         });
     }
-})
+});

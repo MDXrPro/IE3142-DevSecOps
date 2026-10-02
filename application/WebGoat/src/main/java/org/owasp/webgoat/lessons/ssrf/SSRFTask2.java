@@ -7,11 +7,8 @@ package org.owasp.webgoat.lessons.ssrf;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AssignmentHints;
 import org.owasp.webgoat.container.assignments.AttackResult;
@@ -31,24 +28,28 @@ public class SSRFTask2 implements AssignmentEndpoint {
   }
 
   protected AttackResult furBall(String url) {
-    if (url.matches("http://ifconfig\\.pro")) {
-      String html;
-      try (InputStream in = new URL(url).openStream()) {
-        html =
-            new String(in.readAllBytes(), StandardCharsets.UTF_8)
-                .replaceAll("\n", "<br>"); // Otherwise the \n gets escaped in the response
-      } catch (MalformedURLException e) {
-        return getFailedResult(e.getMessage());
-      } catch (IOException e) {
-        // in case the external site is down, the test and lesson should still be ok
-        html =
-            "<html><body>Although the http://ifconfig.pro site is down, you still managed to solve"
-                + " this exercise the right way!</body></html>";
+    try {
+      URI uri = new URI(url);
+
+      /*
+       * Security fix:
+       * The application must not make arbitrary server-side requests
+       * to attacker-controlled destinations.
+       *
+       * Task 2 is therefore restricted to a local resource.
+       */
+      if (!"http".equalsIgnoreCase(uri.getScheme())
+          || uri.getHost() == null
+          || !"localhost".equalsIgnoreCase(uri.getHost())) {
+        return getFailedResult(
+            "External URLs are blocked. Only approved local resources are permitted.");
       }
-      return success(this).feedback("ssrf.success").output(html).build();
+
+      return getFailedResult(
+          "The requested local resource is not available for this exercise.");
+    } catch (URISyntaxException e) {
+      return getFailedResult("Invalid URL.");
     }
-    var html = "<img class=\"image\" alt=\"image post\" src=\"images/cat.jpg\">";
-    return getFailedResult(html);
   }
 
   private AttackResult getFailedResult(String errorMsg) {

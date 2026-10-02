@@ -47,41 +47,59 @@ public class SqlInjectionLesson9 implements AssignmentEndpoint {
 
   protected AttackResult injectableQueryIntegrity(String name, String auth_tan) {
     StringBuilder output = new StringBuilder();
+
     String queryInjection =
-        "SELECT * FROM employees WHERE last_name = '"
-            + name
-            + "' AND auth_tan = '"
-            + auth_tan
-            + "'";
+        "SELECT * FROM employees WHERE last_name = ? AND auth_tan = ?";
+
     try (Connection connection = dataSource.getConnection()) {
       // V2019_09_26_7__employees.sql
       int oldMaxSalary = this.getMaxSalary(connection);
       int oldSumSalariesOfOtherEmployees = this.getSumSalariesOfOtherEmployees(connection);
+
       // begin transaction
       connection.setAutoCommit(false);
-      // do injectable query
-      Statement statement = connection.createStatement(TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);
+
+      // Secure parameterized query
+      var statement =
+          connection.prepareStatement(
+              queryInjection, TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);
+
+      statement.setString(1, name);
+      statement.setString(2, auth_tan);
+
       SqlInjectionLesson8.log(connection, queryInjection);
-      statement.execute(queryInjection);
+      statement.execute();
+
       // check new sum of salaries other employees and new salaries of John
       int newJohnSalary = this.getJohnSalary(connection);
       int newSumSalariesOfOtherEmployees = this.getSumSalariesOfOtherEmployees(connection);
+
       if (newJohnSalary > oldMaxSalary
           && newSumSalariesOfOtherEmployees == oldSumSalariesOfOtherEmployees) {
+
         // success commit
-        connection.commit(); // need execute not executeQuery
+        connection.commit();
         connection.setAutoCommit(true);
+
         output.append(
             SqlInjectionLesson8.generateTable(this.getEmployeesDataOrderBySalaryDesc(connection)));
-        return success(this).feedback("sql-injection.9.success").output(output.toString()).build();
+
+        return success(this)
+            .feedback("sql-injection.9.success")
+            .output(output.toString())
+            .build();
       }
-      // failed roolback
+
+      // failed rollback
       connection.rollback();
+
       return failed(this)
           .feedback("sql-injection.9.one")
           .output(
-              SqlInjectionLesson8.generateTable(this.getEmployeesDataOrderBySalaryDesc(connection)))
+              SqlInjectionLesson8.generateTable(
+                  this.getEmployeesDataOrderBySalaryDesc(connection)))
           .build();
+
     } catch (SQLException e) {
       return failed(this)
           .output("<br><span class='feedback-negative'>" + e.getMessage() + "</span>")
@@ -90,9 +108,12 @@ public class SqlInjectionLesson9 implements AssignmentEndpoint {
   }
 
   private int getSqlInt(Connection connection, String query) throws SQLException {
-    Statement statement = connection.createStatement(TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);
+    Statement statement =
+        connection.createStatement(TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);
+
     ResultSet results = statement.executeQuery(query);
     results.first();
+
     return results.getInt(1);
   }
 
@@ -113,7 +134,10 @@ public class SqlInjectionLesson9 implements AssignmentEndpoint {
 
   private ResultSet getEmployeesDataOrderBySalaryDesc(Connection connection) throws SQLException {
     String query = "SELECT * FROM employees ORDER BY salary DESC";
-    Statement statement = connection.createStatement(TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);
+
+    Statement statement =
+        connection.createStatement(TYPE_SCROLL_SENSITIVE, CONCUR_UPDATABLE);
+
     return statement.executeQuery(query);
   }
 }

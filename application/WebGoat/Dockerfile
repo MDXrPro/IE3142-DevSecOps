@@ -34,9 +34,6 @@ ENTRYPOINT [ "java", \
    "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED", \
    "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", \
    "--add-opens", "java.base/java.io=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.util=ALL-UNNAMED", \
-   "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.io=ALL-UNNAMED", \
    "-Drunning.in.docker=true", \
    "-jar", "webgoat.jar", "--server.address=0.0.0.0" ]
 
